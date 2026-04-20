@@ -6,6 +6,7 @@ A super simple FastAPI application that allows students to view and sign up for 
 
 - View all available extracurricular activities
 - Sign up for activities
+- Persistent SQLite storage for activities and enrollments
 
 ## Getting Started
 
@@ -15,15 +16,32 @@ A super simple FastAPI application that allows students to view and sign up for 
    pip install fastapi uvicorn
    ```
 
-2. Run the application:
+2. Run migrations and seed initial data:
 
    ```
-   python app.py
+   python manage_db.py
    ```
 
-3. Open your browser and go to:
+3. Run the application:
+
+   ```
+   uvicorn app:app --reload
+   ```
+
+4. Open your browser and go to:
    - API documentation: http://localhost:8000/docs
    - Alternative documentation: http://localhost:8000/redoc
+
+## Database
+
+- SQLite database file: `src/data/mergington.sqlite3`
+- Seed source: `src/seed_data.json`
+- Migration + seed command: `python manage_db.py`
+- Reset database and reseed:
+
+  ```
+  python manage_db.py --reset
+  ```
 
 ## API Endpoints
 
@@ -34,17 +52,32 @@ A super simple FastAPI application that allows students to view and sign up for 
 
 ## Data Model
 
-The application uses a simple data model with meaningful identifiers:
+The application uses normalized tables:
 
-1. **Activities** - Uses activity name as identifier:
+1. **User**
+   - `id`
+   - `email` (unique)
+   - `name`
+   - `role`
 
-   - Description
-   - Schedule
-   - Maximum number of participants allowed
-   - List of student emails who are signed up
+2. **Club**
+   - `id`
+   - `name` (unique)
+   - `description`
+   - `contact_email`
 
-2. **Students** - Uses email as identifier:
-   - Name
-   - Grade level
+3. **Activity**
+   - `id`
+   - `name` (unique)
+   - `description`
+   - `schedule`
+   - `max_participants`
+   - `club_id`
 
-All data is stored in memory, which means data will be reset when the server restarts.
+4. **ActivityEnrollment**
+   - `id`
+   - `activity_id`
+   - `user_id`
+   - Unique constraint on (`activity_id`, `user_id`)
+
+The API response shape for `/activities` remains unchanged for frontend compatibility.
